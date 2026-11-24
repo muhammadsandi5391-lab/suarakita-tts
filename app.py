@@ -6,105 +6,79 @@ import os
 
 app = Flask(__name__)
 
-# Edge Neural voices. Presets below stylize these base voices; they are not
-# separate trained anime character models.
+# Empat suara neural dengan karakter asli berbeda.
+# Ardi/Gadis: Bahasa Indonesia; Dimas/Siti: Bahasa Jawa.
 VOICES = {
-    "id": {"male": "id-ID-ArdiNeural", "female": "id-ID-GadisNeural"},
-    "en": {"male": "en-US-GuyNeural", "female": "en-US-JennyNeural"}
-}
-
-# 24 free style presets: pitch/rate processing on the available neural voices.
-CHARACTERS = {
-    "girl_kawaii": ("female", 18, 8), "girl_genki": ("female", 12, 18),
-    "girl_soft": ("female", 8, -8), "girl_calm": ("female", -4, -12),
-    "girl_ojou": ("female", 14, -4), "girl_tsundere": ("female", 10, 7),
-    "girl_dere": ("female", 6, 3), "girl_mature": ("female", -8, -8),
-    "girl_mysterious": ("female", -12, -10), "girl_hero": ("female", 4, 15),
-    "girl_magical": ("female", 16, 4), "girl_narrator": ("female", -2, -5),
-    "boy_shounen": ("male", 10, 15), "boy_cool": ("male", -8, -8),
-    "boy_deep": ("male", -18, -10), "boy_soft": ("male", -4, -8),
-    "boy_genki": ("male", 8, 18), "boy_hero": ("male", -2, 12),
-    "boy_villain": ("male", -14, -5), "boy_prince": ("male", 2, -5),
-    "boy_mysterious": ("male", -12, -12), "boy_comedy": ("male", 12, 12),
-    "boy_narrator": ("male", -6, -4), "boy_young": ("male", 6, 8)
-}
-
-VIBES = {
-    "netral": (0, 0), "ceria": (4, 8), "sedih": (-4, -12),
-    "marah": (-2, 14), "romantis": (3, -8), "heroik": (-3, 10),
-    "lembut": (2, -10), "dramatis": (-5, -5), "puitis": (1, -7)
+    "ardi": {"name": "Ardi", "locale": "Bahasa Indonesia", "voice": "id-ID-ArdiNeural"},
+    "gadis": {"name": "Gadis", "locale": "Bahasa Indonesia", "voice": "id-ID-GadisNeural"},
+    "dimas": {"name": "Dimas", "locale": "Bahasa Jawa", "voice": "jv-ID-DimasNeural"},
+    "siti": {"name": "Siti", "locale": "Bahasa Jawa", "voice": "jv-ID-SitiNeural"}
 }
 
 PREVIEW_TEXT = {
-    "id": "Halo! Ini contoh suara karakter SuaraKita. Bagaimana menurutmu?",
-    "en": "Hello! This is a voice character preview from SuaraKita."
+    "ardi": "Halo, nama saya Ardi. Saya akan membacakan teks ini dengan suara yang natural.",
+    "gadis": "Halo, nama saya Gadis. Saya akan membacakan teks ini dengan suara yang natural.",
+    "dimas": "Sugeng enjing. Jenengku Dimas. Aku bakal maca tulisan iki nganggo basa Jawa.",
+    "siti": "Sugeng enjing. Jenengku Siti. Aku bakal maca tulisan iki nganggo basa Jawa."
 }
 
-def fmt(value, unit):
-    return f"{value:+d}{unit}"
-
-def synthesize(text, language, character, vibe, output_path):
-    gender, base_pitch, base_rate = CHARACTERS[character]
-    vibe_pitch, vibe_rate = VIBES[vibe]
-    pitch = max(-50, min(50, base_pitch + vibe_pitch))
-    rate = max(-50, min(50, base_rate + vibe_rate))
-
-    async def create():
-        communicate = edge_tts.Communicate(
+def create_audio(text, voice_id, output_path):
+    async def run():
+        communicator = edge_tts.Communicate(
             text=text,
-            voice=VOICES[language][gender],
-            rate=fmt(rate, "%"),
-            pitch=fmt(pitch, "Hz")
+            voice=VOICES[voice_id]["voice"]
         )
-        await communicate.save(output_path)
+        await communicator.save(output_path)
+    asyncio.run(run())
 
-    asyncio.run(create())
-
-def make_audio_response(text, language, character, vibe, filename):
-    tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".mp3")
-    tmp.close()
+def audio_response(text, voice_id, filename, attachment):
+    temp = tempfile.NamedTemporaryFile(delete=False, suffix=".mp3")
+    temp.close()
     try:
-        synthesize(text, language, character, vibe, tmp.name)
-        response = send_file(tmp.name, as_attachment=True,
-                             download_name=filename, mimetype="audio/mpeg")
-        response.call_on_close(lambda: os.path.exists(tmp.name) and os.remove(tmp.name))
+        create_audio(text, voice_id, temp.name)
+        response = send_file(
+            temp.name,
+            as_attachment=attachment,
+            download_name=filename,
+            mimetype="audio/mpeg"
+        )
+        response.call_on_close(
+            lambda: os.path.exists(temp.name) and os.remove(temp.name)
+        )
         return response
     except Exception:
-        if os.path.exists(tmp.name):
-            os.remove(tmp.name)
+        if os.path.exists(temp.name):
+            os.remove(temp.name)
         raise
 
 @app.get("/")
 def home():
-    return render_template("index.html")
+    return render_template("index.html", voices=VOICES)
 
 @app.post("/preview")
 def preview():
-    language = request.form.get("language", "id")
-    character = request.form.get("character", "girl_kawaii")
-    vibe = request.form.get("vibe", "netral")
-    if language not in VOICES or character not in CHARACTERS or vibe not in VIBES:
+    voice_id = request.form.get("voice", "gadis")
+    if voice_id not in VOICES:
         return jsonify(error="Pilihan suara tidak valid."), 400
-    text = PREVIEW_TEXT[language]
     try:
-        return make_audio_response(text, language, character, vibe, "preview-suarakita.mp3")
+        return audio_response(
+            PREVIEW_TEXT[voice_id], voice_id, "preview-suarakita.mp3", False
+        )
     except Exception:
-        return jsonify(error="Preview gagal dibuat. Coba lagi sebentar."), 500
+        return jsonify(error="Preview gagal. Periksa koneksi lalu coba lagi."), 500
 
 @app.post("/generate")
 def generate():
     text = request.form.get("narration", "").strip()
-    language = request.form.get("language", "id")
-    character = request.form.get("character", "girl_kawaii")
-    vibe = request.form.get("vibe", "netral")
+    voice_id = request.form.get("voice", "gadis")
     if not text:
         return jsonify(error="Kolom narasi masih kosong."), 400
-    if language not in VOICES or character not in CHARACTERS or vibe not in VIBES:
+    if voice_id not in VOICES:
         return jsonify(error="Pilihan suara tidak valid."), 400
     if len(text) > 100000:
-        return jsonify(error="Teks terlalu panjang untuk satu proses. Bagi menjadi beberapa bagian."), 413
+        return jsonify(error="Teks terlalu panjang. Bagi menjadi beberapa bagian."), 413
     try:
-        return make_audio_response(text, language, character, vibe, "suarakita-narasi.mp3")
+        return audio_response(text, voice_id, "suarakita-narasi.mp3", True)
     except Exception:
         return jsonify(error="Gagal membuat audio. Coba lagi beberapa saat."), 500
 
