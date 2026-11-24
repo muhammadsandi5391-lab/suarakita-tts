@@ -3,152 +3,130 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#111827">
-  <title>SuaraKita — Text to Speech</title>
+  <title>SuaraKita TTS</title>
   <style>
-    :root { color-scheme: dark; --bg:#0b1020; --panel:#151d31; --line:#2a3652; --muted:#9aa8c2; --accent:#8b7cff; }
-    * { box-sizing:border-box }
-    body { margin:0; font-family:system-ui,-apple-system,Segoe UI,sans-serif; background:radial-gradient(circle at top,#1b2850 0,#0b1020 45%); color:#f5f7ff; min-height:100vh; padding:28px 16px; }
-    .wrap { width:min(760px,100%); margin:auto }
-    header { margin:0 0 22px }
-    .eyebrow { color:#b8adff; font-size:12px; letter-spacing:.16em; font-weight:800 }
-    h1 { margin:8px 0; font-size:clamp(28px,6vw,42px); letter-spacing:-.04em }
-    header p { color:var(--muted); margin:0 }
-    .panel { background:rgba(21,29,49,.94); border:1px solid var(--line); border-radius:22px; padding:22px; box-shadow:0 22px 70px #0005 }
-    label { display:block; font-weight:700; font-size:14px; margin:0 0 8px }
-    .field { margin-bottom:18px }
-    select, textarea { width:100%; border:1px solid var(--line); background:#0d1528; color:#f5f7ff; border-radius:12px; padding:13px 14px; font:inherit; outline:none }
-    select:focus, textarea:focus { border-color:var(--accent); box-shadow:0 0 0 3px #8b7cff22 }
-    textarea { min-height:230px; resize:vertical; line-height:1.6 }
-    .grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px }
-    .hint { color:var(--muted); font-size:12px; margin-top:7px }
-    button { width:100%; border:0; border-radius:13px; padding:15px 18px; color:white; background:linear-gradient(110deg,#7666f5,#a45df1); font-size:16px; font-weight:800; cursor:pointer }
-    button:disabled { opacity:.55; cursor:wait }
-    .status { min-height:24px; margin:12px 0 0; color:#c9c3ff; font-size:13px }
-    .note { color:var(--muted); font-size:12px; line-height:1.6; margin:16px 2px 0 }
-    audio { width:100%; margin-top:14px; display:none }
-    @media(max-width:560px) { .grid { grid-template-columns:1fr } .panel { padding:17px } }
+    :root{color-scheme:dark}
+    *{box-sizing:border-box}
+    body{margin:0;background:#10111b;color:#f5f5fb;font-family:system-ui,-apple-system,Segoe UI,sans-serif}
+    main{max-width:900px;margin:0 auto;padding:24px 16px 48px}
+    h1{margin:0 0 6px;font-size:30px}
+    .sub,.note{color:#a9abc0;line-height:1.5}
+    .panel{background:#191b2a;border:1px solid #30334a;border-radius:16px;padding:18px;margin-top:18px}
+    label{display:block;font-weight:650;margin:12px 0 7px}
+    select,textarea{width:100%;background:#10121e;color:#fff;border:1px solid #41445d;border-radius:10px;padding:12px;font:inherit}
+    textarea{min-height:130px;resize:vertical}
+    .controls{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .voices{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin-top:12px}
+    .voice{background:#121421;border:1px solid #34374e;border-radius:12px;padding:12px}
+    .voice.selected{border-color:#9b83ff;box-shadow:0 0 0 1px #9b83ff}
+    .voice strong{display:block;margin-bottom:4px}
+    .voice small{display:block;color:#a9abc0;min-height:34px}
+    button{border:0;border-radius:10px;padding:11px 14px;font:inherit;font-weight:700;cursor:pointer}
+    .choose{width:100%;margin-top:10px;background:#292c40;color:#fff}
+    .preview{width:100%;margin-top:7px;background:#413477;color:#fff}
+    .primary{background:#8e72ff;color:#fff;width:100%;margin-top:14px}
+    button:disabled{opacity:.55;cursor:wait}
+    #status{min-height:24px;color:#c8baff;margin-top:12px}
+    audio{width:100%;margin-top:12px}
+    @media(max-width:560px){.controls{grid-template-columns:1fr}main{padding:20px 12px}}
   </style>
 </head>
 <body>
-  <main class="wrap">
-    <header>
-      <div class="eyebrow">AI VOICE STUDIO</div>
-      <h1>SuaraKita</h1>
-      <p>Ubah narasi menjadi audio MP3 dengan pilihan karakter suara.</p>
-    </header>
+<main>
+  <h1>SuaraKita TTS</h1>
+  <div class="sub">Ubah teks menjadi audio MP3 dengan pilihan gaya suara.</div>
+  <section class="panel">
+    <div class="controls">
+      <div>
+        <label for="language">Bahasa</label>
+        <select id="language"><option value="id">Bahasa Indonesia</option><option value="en">English</option></select>
+      </div>
+      <div>
+        <label for="vibe">Ekspresi / emosi</label>
+        <select id="vibe">
+          <option value="netral">Netral</option><option value="ceria">Ceria</option>
+          <option value="sedih">Sedih</option><option value="marah">Marah</option>
+          <option value="romantis">Romantis</option><option value="heroik">Heroik</option>
+          <option value="lembut">Lembut</option><option value="dramatis">Dramatis</option>
+          <option value="puitis">Puitis</option>
+        </select>
+      </div>
+    </div>
+    <label>Pilih karakter suara (24 preset gratis)</label>
+    <div class="note">Tekan Preview untuk mendengar contoh. Tekan Pilih untuk memakai karakter tersebut.</div>
+    <div class="voices" id="voices"></div>
+    <label for="narration">Teks narasi</label>
+    <textarea id="narration" placeholder="Tulis teks yang ingin diubah menjadi suara..."></textarea>
+    <button class="primary" id="generate">Buat &amp; Unduh MP3</button>
+    <div id="status" role="status"></div>
+    <audio id="player" controls hidden></audio>
+  </section>
+  <p class="note">Catatan: preset ini mengubah pitch dan kecepatan dari suara neural dasar yang tersedia. Ini bukan 24 model suara anime asli yang dilatih terpisah. Tidak memerlukan API key atau kartu kredit dari pengguna; layanan suara Edge TTS bergantung pada ketersediaan layanan Microsoft dan internet.</p>
+</main>
+<script>
+const characters = [
+  ["girl_kawaii","Cewek Kawaii","Imut dan tinggi"],["girl_genki","Cewek Genki","Ceria dan energik"],
+  ["girl_soft","Cewek Lembut","Halus dan ramah"],["girl_calm","Cewek Tenang","Santai dan kalem"],
+  ["girl_ojou","Cewek Ojou","Anggun dan manis"],["girl_tsundere","Cewek Tsundere","Tegas dan ekspresif"],
+  ["girl_dere","Cewek Dere","Hangat dan lembut"],["girl_mature","Cewek Dewasa","Lebih rendah dan matang"],
+  ["girl_mysterious","Cewek Misterius","Rendah dan misterius"],["girl_hero","Cewek Pahlawan","Berani dan kuat"],
+  ["girl_magical","Cewek Magical","Ceria dan fantastis"],["girl_narrator","Narator Cewek","Stabil untuk cerita"],
+  ["boy_shounen","Cowok Shounen","Semangat petualang"],["boy_cool","Cowok Cool","Dingin dan santai"],
+  ["boy_deep","Cowok Deep","Rendah dan berat"],["boy_soft","Cowok Lembut","Tenang dan halus"],
+  ["boy_genki","Cowok Genki","Ceria dan energik"],["boy_hero","Cowok Pahlawan","Tegas dan berani"],
+  ["boy_villain","Cowok Villain","Gelap dan dramatis"],["boy_prince","Cowok Prince","Halus dan elegan"],
+  ["boy_mysterious","Cowok Misterius","Rendah dan tenang"],["boy_comedy","Cowok Komedi","Ringan dan ekspresif"],
+  ["boy_narrator","Narator Cowok","Stabil untuk cerita"],["boy_young","Cowok Muda","Muda dan ceria"]
+];
+let selected = "girl_kawaii";
+let audioUrl = null;
+const voicesEl = document.getElementById("voices");
+const statusEl = document.getElementById("status");
+const player = document.getElementById("player");
 
-    <section class="panel">
-      <form id="ttsForm">
-        <div class="grid">
-          <div class="field">
-            <label for="language">Bahasa</label>
-            <select id="language" name="language">
-              <option value="id" selected>🇮🇩 Bahasa Indonesia</option>
-              <option value="en">🇺🇸 English</option>
-            </select>
-          </div>
-          <div class="field">
-            <label for="gender">Karakter suara</label>
-            <select id="gender" name="gender">
-              <option value="female" selected>Wanita</option>
-              <option value="male">Pria</option>
-            </select>
-          </div>
-          <div class="field">
-            <label for="voiceType">Tipe suara</label>
-            <select id="voiceType" disabled>
-              <option>Wanita — lembut dan natural</option>
-            </select>
-            <div class="hint">Tipe suara menyesuaikan karakter yang dipilih.</div>
-          </div>
-          <div class="field">
-            <label for="vibe">Emosi / vibe</label>
-            <select id="vibe" name="vibe">
-              <option value="netral">Netral</option>
-              <option value="ceria">Ceria</option>
-              <option value="sedih">Sedih</option>
-              <option value="puitis">Puitis</option>
-              <option value="tenang">Tenang</option>
-              <option value="tegas">Tegas</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="field">
-          <label for="narration">Teks narasi</label>
-          <textarea id="narration" name="narration" placeholder="Tulis atau tempel narasi kamu di sini..." required></textarea>
-          <div class="hint">Tidak ada batas karakter pada kolom ini. Batas pemrosesan server saat ini 100.000 karakter per proses.</div>
-        </div>
-
-        <button id="generateBtn" type="submit">▶ Buat & Unduh MP3</button>
-        <div class="status" id="status" role="status"></div>
-        <audio id="preview" controls></audio>
-      </form>
-    </section>
-    <p class="note">Audio dibuat di server lalu dikirim sebagai file MP3. Di Android, file biasanya masuk ke folder Download/Penyimpanan internal melalui pengelola unduhan browser. Efek emosi menggunakan pengaturan kecepatan dan tinggi nada, jadi hasilnya dapat berbeda menurut suara.</p>
-  </main>
-
-  <script>
-    const form = document.getElementById('ttsForm');
-    const gender = document.getElementById('gender');
-    const language = document.getElementById('language');
-    const voiceType = document.getElementById('voiceType');
-    const button = document.getElementById('generateBtn');
-    const status = document.getElementById('status');
-    const preview = document.getElementById('preview');
-    let currentUrl = null;
-
-    function updateVoiceType() {
-      const isFemale = gender.value === 'female';
-      const lang = language.value;
-      const label = isFemale
-        ? (lang === 'id' ? 'Wanita — lembut dan natural' : 'Female — warm and natural')
-        : (lang === 'id' ? 'Pria — dalam dan natural' : 'Male — deep and natural');
-      voiceType.innerHTML = '';
-      const option = document.createElement('option');
-      option.textContent = label;
-      voiceType.appendChild(option);
-    }
-    gender.addEventListener('change', updateVoiceType);
-    language.addEventListener('change', updateVoiceType);
-    updateVoiceType();
-
-    form.addEventListener('submit', async (event) => {
-      event.preventDefault();
-      if (!document.getElementById('narration').value.trim()) return;
-      button.disabled = true;
-      button.textContent = 'Membuat audio...';
-      status.textContent = 'Sedang mengubah teks menjadi suara. Mohon tunggu.';
-      preview.style.display = 'none';
-
-      try {
-        const response = await fetch('/generate', { method:'POST', body:new FormData(form) });
-        if (!response.ok) {
-          let message = 'Terjadi kesalahan saat membuat audio.';
-          try { const data = await response.json(); message = data.error || message; } catch {}
-          throw new Error(message);
-        }
-        const blob = await response.blob();
-        if (currentUrl) URL.revokeObjectURL(currentUrl);
-        currentUrl = URL.createObjectURL(blob);
-        preview.src = currentUrl;
-        preview.style.display = 'block';
-
-        const a = document.createElement('a');
-        a.href = currentUrl;
-        a.download = 'narasi-suara.mp3';
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        status.textContent = 'MP3 berhasil dibuat. Unduhan dimulai; cek folder Download di perangkat kamu.';
-      } catch (error) {
-        status.textContent = error.message;
-      } finally {
-        button.disabled = false;
-        button.textContent = '▶ Buat & Unduh MP3';
-      }
-    });
-  </script>
+function renderVoices(){
+  voicesEl.innerHTML = "";
+  characters.forEach(([id,name,desc])=>{
+    const card = document.createElement("div");
+    card.className = "voice" + (id===selected ? " selected" : "");
+    const title = document.createElement("strong"); title.textContent=name;
+    const detail = document.createElement("small"); detail.textContent=desc;
+    const choose = document.createElement("button"); choose.className="choose"; choose.textContent=id===selected?"Terpilih":"Pilih";
+    choose.onclick=()=>{selected=id;renderVoices();statusEl.textContent=name+" dipilih.";};
+    const preview = document.createElement("button"); preview.className="preview"; preview.textContent="▶ Preview";
+    preview.onclick=()=>playPreview(id,preview);
+    card.append(title,detail,choose,preview); voicesEl.append(card);
+  });
+}
+async function requestAudio(endpoint, data, button){
+  button.disabled=true; statusEl.textContent="Sedang membuat audio...";
+  try{
+    const response=await fetch(endpoint,{method:"POST",body:data});
+    if(!response.ok){let message="Gagal membuat audio.";try{message=(await response.json()).error||message;}catch{}throw new Error(message);}
+    const blob=await response.blob();
+    if(audioUrl)URL.revokeObjectURL(audioUrl);
+    audioUrl=URL.createObjectURL(blob);player.src=audioUrl;player.hidden=false;
+    if(endpoint==="/generate"){
+      const a=document.createElement("a");a.href=audioUrl;a.download="suarakita-narasi.mp3";document.body.appendChild(a);a.click();a.remove();
+      statusEl.textContent="Audio berhasil dibuat. Unduhan MP3 dimulai.";
+    }else{statusEl.textContent="Preview siap diputar.";await player.play();}
+  }catch(error){statusEl.textContent=error.message;}
+  finally{button.disabled=false;}
+}
+function playPreview(id,button){
+  const data=new FormData();data.append("language",document.getElementById("language").value);
+  data.append("character",id);data.append("vibe",document.getElementById("vibe").value);
+  requestAudio("/preview",data,button);
+}
+document.getElementById("generate").onclick=()=>{
+  const text=document.getElementById("narration").value.trim();
+  if(!text){statusEl.textContent="Tulis narasi terlebih dahulu.";return;}
+  const data=new FormData();data.append("narration",text);
+  data.append("language",document.getElementById("language").value);
+  data.append("character",selected);data.append("vibe",document.getElementById("vibe").value);
+  requestAudio("/generate",data,document.getElementById("generate"));
+};
+renderVoices();
+</script>
 </body>
 </html>
